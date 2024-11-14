@@ -44,6 +44,8 @@ namespace PersonalizedHealthRX_Api.Controllers
             var dynamicDataList = new LoggedWebHookData();
 
             dynamicDataList.Data = data.ToString(Formatting.None);
+            dynamicDataList.EventType = data["event_type"]?.ToString();
+            dynamicDataList.CaseId = data["case_id"]?.ToString();
 
             _context.LoggedWebHookData.AddRange(dynamicDataList);
             _context.SaveChanges();
@@ -52,6 +54,15 @@ namespace PersonalizedHealthRX_Api.Controllers
             {
                 var tokenResponse = await _mdIntegrationTokenService.GetTokenAsync();
 
+                var user = new User
+                {
+                    VoucherId = data["voucher_id"]?.ToString(),
+                    CaseId = data["case_id"]?.ToString()
+                };
+
+                _context.User.Add(user);
+                _context.SaveChanges();
+
                 string patientId = data["patient_id"]?.ToString();
                 var patientDetailsJson = await _mdIntegrationTokenService.GetPatientDetailsAsync(patientId, tokenResponse.access_token);
                 //var patientDetails = JsonConvert.DeserializeObject<PatientDetails>(patientDetailsJson);
@@ -59,6 +70,18 @@ namespace PersonalizedHealthRX_Api.Controllers
             }
 
             return Ok();
+        }
+        [HttpGet]
+        [Route("GetUserStatus/{VoucherId}")]
+        public async Task<IActionResult> GetUserStatus(string VoucherId)
+        {
+            var user = await _context.User.FirstOrDefaultAsync(a => a.VoucherId == VoucherId);
+            if (user == null)
+            {
+                return NotFound(new { message = "User not found" });
+            }
+            var Events = await _context.LoggedWebHookData.Where(a => a.CaseId == user.CaseId).ToListAsync();
+            return Ok(Events);
         }
     }
 }

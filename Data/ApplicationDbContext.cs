@@ -10,6 +10,7 @@ namespace PersonalizedHealthRX_Api.Data
         }
         public DbSet<LogEvents> LogEvents { get; set; }
         public DbSet<LoggedWebHookData> LoggedWebHookData { get; set; }
+        public DbSet<User> User { get; set; }
 
         public override int SaveChanges()
         {
