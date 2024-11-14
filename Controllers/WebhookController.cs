@@ -54,18 +54,26 @@ namespace PersonalizedHealthRX_Api.Controllers
             {
                 var tokenResponse = await _mdIntegrationTokenService.GetTokenAsync();
 
+                string patientId = data["patient_id"]?.ToString();
+                var patientDetailsJson = await _mdIntegrationTokenService.GetPatientDetailsAsync(patientId, tokenResponse.access_token);
+                //var patientDetails = JsonConvert.DeserializeObject<PatientDetails>(patientDetailsJson);
+
+                JObject JasonObject = JObject.Parse(patientDetailsJson);
+
+                // Access the auth_link property
+                string authLink = JasonObject["auth_link"]?.ToString();
+
                 var user = new User
                 {
                     VoucherId = data["voucher_id"]?.ToString(),
-                    CaseId = data["case_id"]?.ToString()
+                    CaseId = data["case_id"]?.ToString(),
+                    AuthLink = authLink,
                 };
 
                 _context.User.Add(user);
                 _context.SaveChanges();
 
-                string patientId = data["patient_id"]?.ToString();
-                var patientDetailsJson = await _mdIntegrationTokenService.GetPatientDetailsAsync(patientId, tokenResponse.access_token);
-                //var patientDetails = JsonConvert.DeserializeObject<PatientDetails>(patientDetailsJson);
+                
                 return Ok(patientDetailsJson);
             }
 
