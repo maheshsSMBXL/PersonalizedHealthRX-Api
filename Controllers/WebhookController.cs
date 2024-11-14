@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Azure.Core;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -11,14 +12,18 @@ namespace PersonalizedHealthRX_Api.Controllers
     public class WebhookController : ControllerBase
     {
         private readonly IApplicationDbContext _context;
+        private readonly IConfiguration _configuration;
+        private readonly MdIntegrationsTokenService _mdIntegrationTokenService;
 
-        public WebhookController(ApplicationDbContext context)
+        public WebhookController(ApplicationDbContext context, IConfiguration configuration, MdIntegrationsTokenService mdIntegrationTokenService)
         {
             _context = context;
+            _configuration = configuration;
+            _mdIntegrationTokenService = mdIntegrationTokenService;
         }
 
         [HttpPost]
-        public IActionResult LogEvents([FromBody] JObject data)
+        public async Task<IActionResult> LogEventsAsync([FromBody] JObject data)
         {
             if (data == null)
             {
@@ -35,18 +40,25 @@ namespace PersonalizedHealthRX_Api.Controllers
             //        Value = prop.Value.ToString(),
             //        CreatedAt = DateTime.UtcNow
             //    }).ToList();
-             
+
+            var dynamicDataList = new LoggedWebHookData();
+
+            dynamicDataList.Data = data.ToString(Formatting.None);
+
+            _context.LoggedWebHookData.AddRange(dynamicDataList);
+            _context.SaveChanges();
+
             if (data["event_type"]?.ToString() == "voucher_used") 
             {
-                var dynamicDataList = new LoggedWebHookData();
+                var tokenResponse = await _mdIntegrationTokenService.GetTokenAsync();
 
-                dynamicDataList.Data = data.ToString(Formatting.None);
-
-                _context.LoggedWebHookData.AddRange(dynamicDataList);
-                _context.SaveChanges();
+                string patientId = data["patient_id"]?.ToString();
+                var patientDetailsJson = await _mdIntegrationTokenService.GetPatientDetailsAsync(patientId, tokenResponse.access_token);
+                //var patientDetails = JsonConvert.DeserializeObject<PatientDetails>(patientDetailsJson);
+                return Ok(patientDetailsJson);
             }
 
-            return Ok(data);
+            return Ok();
         }
     }
 }
