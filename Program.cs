@@ -24,6 +24,11 @@ builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlSer
 //           .EnableSensitiveDataLogging()
 //           .EnableDetailedErrors());
 
+//For Identity
+builder.Services.AddIdentity<IdentityUser, IdentityRole>()
+    .AddEntityFrameworkStores<ApplicationDbContext>()
+    .AddDefaultTokenProviders();
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowOrigin",
