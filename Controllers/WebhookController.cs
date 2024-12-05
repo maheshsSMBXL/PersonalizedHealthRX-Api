@@ -1,4 +1,5 @@
-﻿using Azure.Core;
+﻿using Azure;
+using Azure.Core;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
@@ -79,6 +80,7 @@ namespace PersonalizedHealthRX_Api.Controllers
 
             return Ok();
         }
+
         [HttpGet]
         [Route("GetUserStatus/{VoucherId}")]
         public async Task<IActionResult> GetUserStatus(string VoucherId)
@@ -86,7 +88,8 @@ namespace PersonalizedHealthRX_Api.Controllers
             var user = await _context.User.FirstOrDefaultAsync(a => a.VoucherId == VoucherId);
             if (user == null)
             {
-                return NotFound(new { message = "User not found" });
+                //return NotFound(new { message = "User not found" });
+                return Ok(new { message = "User not found" });
             }
             var Events = await _context.LoggedWebHookData.Where(a => a.CaseId == user.CaseId).ToListAsync();
             return Ok(Events);
