@@ -5,7 +5,7 @@ using Microsoft.VisualBasic;
 
 namespace PersonalizedHealthRX_Api.Data
 {
-    public class ApplicationDbContext : IdentityDbContext<IdentityUser>, IApplicationDbContext
+    public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplicationDbContext
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
         {

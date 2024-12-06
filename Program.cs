@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using PersonalizedHealthRX_Api;
 using PersonalizedHealthRX_Api.Data;
 
@@ -26,7 +27,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlSer
 //           .EnableDetailedErrors());
 
 //For Identity
-builder.Services.AddIdentity<IdentityUser, IdentityRole>()
+builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
 
